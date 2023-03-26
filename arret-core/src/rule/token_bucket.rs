@@ -4,20 +4,6 @@ use crate::{
     rate_limiter::{AcquireResult, Quota, RateLimiter},
 };
 
-/// Rate limiting rule.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum Rule {
-    /// Rate limiting rule based on token bucket algorithm.
-    ///
-    /// See [`TokenBucket`] for details.
-    TokenBucket(TokenBucket),
-
-    /// Rate limiting rule based on fixed window algorithm.
-    ///
-    /// See [`FixedWindow`] for details.
-    FixedWindow(FixedWindow),
-}
-
 /// [Token bucket](https://en.wikipedia.org/wiki/Token_bucket) algorithm is a common
 /// algorithm for rate limiting. While it allows traffic to be passed at a constant rate,
 /// it also allows bursts of traffic to be passed over a short period of time.
@@ -64,7 +50,7 @@ impl TokenBucket {
 }
 
 impl TokenBucket {
-    const REDIS_SCRIPT: &str = include_str!("./res/TokenBucket.lua");
+    const REDIS_SCRIPT: &str = include_str!("../res/TokenBucket.lua");
 }
 
 impl RateLimiter for TokenBucket {
@@ -117,42 +103,5 @@ impl redis::FromRedisValue for TokenBucketScriptResult {
             tokens,
             reset,
         })
-    }
-}
-
-/// [Fixed window](https://developer.redis.com/develop/java/spring/rate-limiting/fixed-window/)
-/// is a simple algorithm for rate limiting. It allows a limited amount of traffic in a fixed
-/// time window. Once the window is full, no more traffic is allowed until the window is reset.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct FixedWindow {
-    capacity: u64,
-    window: Interval,
-}
-
-impl FixedWindow {
-    /// Creates a new [`FixedWindow`] with the given capacity and window.
-    pub fn new(capacity: u64, window: Interval) -> Result<Self> {
-        Ok(Self { capacity, window })
-    }
-
-    /// Returns the capacity of the fixed window rule.
-    pub fn capacity(&self) -> u64 {
-        self.capacity
-    }
-
-    /// Returns the window of the fixed window rule.
-    pub fn window(&self) -> Interval {
-        self.window
-    }
-}
-
-impl RateLimiter for FixedWindow {
-    fn acquire(
-        &self,
-        _resource: &str,
-        _tokens: u64,
-        _con: &mut dyn redis::ConnectionLike,
-    ) -> Result<crate::rate_limiter::AcquireResult> {
-        todo!()
     }
 }
