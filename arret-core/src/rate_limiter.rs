@@ -2,8 +2,7 @@ use crate::error::Result;
 
 /// A rate limiter for a single resource.
 pub trait RateLimiter {
-    /// Acquires a resource from the rate limiter. The weight of the resource is
-    /// specified by `tokens`.
+    /// Try to acquire `tokens` request for the given `resource`.
     ///
     /// If the rate limit has not been exceeded, the resource is acquired and
     /// [`AcquireResult::Ok`] is returned.
