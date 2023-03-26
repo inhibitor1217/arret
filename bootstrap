@@ -20,12 +20,24 @@ shutdown_containers() {
   docker compose -f $BOOTSTRAP_DOCKER_COMPOSE_FILE down
 }
 
+test() {
+  echo "Running tests..."
+  echo ""
+
+  # Clear redis
+  redis-cli flushall > /dev/null
+
+  # Run tests
+  cargo test
+}
+
 usage() {
   echo "Usage: $0 [OPTIONS]"
   echo ""
   echo "Options:"
   echo "  up      Start the containers"
   echo "  down    Stop the containers"
+  echo "  test    Run the tests"
   echo "  help    Show this help message"
   echo ""
 }
@@ -37,6 +49,8 @@ main() {
     setup_containers
   elif [ $1 == "down" ]; then
     shutdown_containers
+  elif [ $1 == "test" ]; then
+    test
   elif [ $1 == "help" ]; then
     usage
   else
