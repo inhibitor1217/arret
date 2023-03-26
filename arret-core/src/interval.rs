@@ -6,13 +6,13 @@ use crate::error::{Error, Result};
 ///
 /// Sub-second precision time windows are not supported.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct Interval(Duration);
+pub struct Interval(u64);
 
 impl Interval {
     /// Creates a new [`Interval`] with the given number of seconds.
     pub fn from_secs(seconds: u64) -> Result<Self> {
         if seconds > 0 {
-            Ok(Self(Duration::from_secs(seconds)))
+            Ok(Self(seconds))
         } else {
             Err(Error::ZeroTimeInterval)
         }
@@ -35,10 +35,21 @@ impl Interval {
     pub fn from_duration(duration: Duration) -> Result<Self> {
         Self::from_secs(duration.as_secs())
     }
+
+    /// Returns the number of seconds in the interval.
+    ///
+    /// ```rust
+    /// use arret_core::interval::Interval;
+    ///
+    /// assert_eq!(Interval::from_secs(60).unwrap().as_secs(), 60);
+    /// ```
+    pub fn as_secs(&self) -> u64 {
+        self.0
+    }
 }
 
 impl From<Interval> for Duration {
     fn from(interval: Interval) -> Self {
-        interval.0
+        Duration::from_secs(interval.0)
     }
 }

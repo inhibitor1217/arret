@@ -1,7 +1,7 @@
 use crate::{
     error::{Error, Result},
     interval::Interval,
-    rate_limiter::RateLimiter,
+    rate_limiter::{AcquireResult, Quota, RateLimiter},
 };
 
 /// Rate limiting rule.
@@ -63,14 +63,60 @@ impl TokenBucket {
     }
 }
 
+impl TokenBucket {
+    const REDIS_SCRIPT: &str = include_str!("./res/TokenBucket.lua");
+}
+
 impl RateLimiter for TokenBucket {
     fn acquire(
         &self,
-        _resource: &str,
-        _tokens: u64,
-        _con: &mut dyn redis::ConnectionLike,
+        resource: &str,
+        tokens: u64,
+        con: &mut dyn redis::ConnectionLike,
     ) -> Result<crate::rate_limiter::AcquireResult> {
-        todo!()
+        let script = redis::Script::new(Self::REDIS_SCRIPT);
+        let key = format!("token_bucket:{resource}");
+        let result = script
+            .key(&key)
+            .arg(self.capacity)
+            .arg(self.refill_interval.as_secs())
+            .arg(self.refill_amount)
+            .arg(tokens)
+            .invoke::<TokenBucketScriptResult>(con)
+            .map_err(|err| Error::Internal(err.to_string()))?;
+
+        if result.accepted {
+            Ok(AcquireResult::Ok(Quota::new(
+                self.capacity,
+                result.tokens,
+                result.reset,
+            )))
+        } else {
+            Ok(AcquireResult::Throttled(Quota::new(
+                self.capacity,
+                result.tokens,
+                result.reset,
+            )))
+        }
+    }
+}
+
+/// Result of a token bucket Lua script execution.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+struct TokenBucketScriptResult {
+    accepted: bool,
+    tokens: u64,
+    reset: u64,
+}
+
+impl redis::FromRedisValue for TokenBucketScriptResult {
+    fn from_redis_value(v: &redis::Value) -> redis::RedisResult<Self> {
+        let (ok, tokens, reset): (bool, u64, u64) = redis::FromRedisValue::from_redis_value(v)?;
+        Ok(Self {
+            accepted: ok,
+            tokens,
+            reset,
+        })
     }
 }
 

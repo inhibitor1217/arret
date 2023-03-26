@@ -46,12 +46,12 @@ pub struct Quota {
 }
 
 impl Quota {
-    /// Creates a new [`Quota`] with the given capacity, used tokens, and reset timestamp.
-    pub(crate) fn new(capacity: u64, used: u64, reset: u64) -> Self {
+    /// Creates a new [`Quota`] with the given capacity, remaining tokens, and reset timestamp.
+    pub(crate) fn new(capacity: u64, remaining: u64, reset: u64) -> Self {
         Self {
             limit: capacity,
-            remaining: capacity.saturating_sub(used),
-            used,
+            remaining,
+            used: capacity.saturating_sub(remaining),
             reset,
         }
     }

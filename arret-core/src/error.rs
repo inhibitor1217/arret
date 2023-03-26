@@ -1,12 +1,15 @@
 use std::fmt;
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Error {
     /// Time interval with zero duration is not supported.
     ZeroTimeInterval,
 
     /// Invalid rate limiting rule.
     InvalidRule(String),
+
+    /// Internal error.
+    Internal(String),
 }
 
 impl fmt::Display for Error {
@@ -16,6 +19,7 @@ impl fmt::Display for Error {
                 write!(f, "Time interval with zero duration is not supported")
             }
             Self::InvalidRule(msg) => write!(f, "Invalid rate limiting rule: {msg}"),
+            Self::Internal(err) => write!(f, "Internal error: {err}"),
         }
     }
 }
