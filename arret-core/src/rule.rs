@@ -3,6 +3,7 @@ use std::time::Duration;
 use crate::{
     error::{Error, Result},
     interval::Interval,
+    rate_limiter::RateLimiter,
 };
 
 /// Rate limiting rule.
@@ -69,6 +70,17 @@ impl TokenBucket {
     }
 }
 
+impl RateLimiter for TokenBucket {
+    fn acquire(
+        &self,
+        _resource: &str,
+        _tokens: u64,
+        _con: &mut dyn redis::ConnectionLike,
+    ) -> Result<crate::rate_limiter::AcquireResult> {
+        todo!()
+    }
+}
+
 /// [Fixed window](https://developer.redis.com/develop/java/spring/rate-limiting/fixed-window/)
 /// is a simple algorithm for rate limiting. It allows a limited amount of traffic in a fixed
 /// time window. Once the window is full, no more traffic is allowed until the window is reset.
@@ -97,5 +109,16 @@ impl FixedWindow {
     /// Returns the window of the fixed window rule as [`Duration`].
     pub fn window_duration(&self) -> Duration {
         self.window.into()
+    }
+}
+
+impl RateLimiter for FixedWindow {
+    fn acquire(
+        &self,
+        _resource: &str,
+        _tokens: u64,
+        _con: &mut dyn redis::ConnectionLike,
+    ) -> Result<crate::rate_limiter::AcquireResult> {
+        todo!()
     }
 }
