@@ -15,6 +15,8 @@ pub struct TokenBucket {
 }
 
 impl TokenBucket {
+    const REDIS_SCRIPT: &str = include_str!("../res/TokenBucket.lua");
+
     /// Creates a new [`TokenBucket`] with the given capacity, refill interval and refill amount.
     ///
     /// # Errors
@@ -47,10 +49,6 @@ impl TokenBucket {
     pub fn refill_amount(&self) -> u64 {
         self.refill_amount
     }
-}
-
-impl TokenBucket {
-    const REDIS_SCRIPT: &str = include_str!("../res/TokenBucket.lua");
 }
 
 impl RateLimiter for TokenBucket {
@@ -97,9 +95,10 @@ struct TokenBucketScriptResult {
 
 impl redis::FromRedisValue for TokenBucketScriptResult {
     fn from_redis_value(v: &redis::Value) -> redis::RedisResult<Self> {
-        let (ok, tokens, reset): (bool, u64, u64) = redis::FromRedisValue::from_redis_value(v)?;
+        let (accepted, tokens, reset): (bool, u64, u64) =
+            redis::FromRedisValue::from_redis_value(v)?;
         Ok(Self {
-            accepted: ok,
+            accepted,
             tokens,
             reset,
         })
