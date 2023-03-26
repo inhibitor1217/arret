@@ -1,0 +1,47 @@
+#!/bin/bash
+
+BOOTSTRAP_STAGE="local"
+BOOTSTRAP_DIR=$(dirname $0)
+BOOTSTRAP_DOCKER_COMPOSE_FILE="$BOOTSTRAP_DIR/$BOOTSTRAP_STAGE/docker-compose.yml"
+
+welcome() {
+  echo "Welcome to the Arrêt bootstrap script!"
+  echo "Stage: $BOOTSTRAP_STAGE"
+  echo ""
+}
+
+setup_containers() {
+  echo "Building and starting containers..."
+  docker compose -f $BOOTSTRAP_DOCKER_COMPOSE_FILE build
+  docker compose -f $BOOTSTRAP_DOCKER_COMPOSE_FILE up -d
+}
+
+shutdown_containers() {
+  docker compose -f $BOOTSTRAP_DOCKER_COMPOSE_FILE down
+}
+
+usage() {
+  echo "Usage: $0 [OPTIONS]"
+  echo ""
+  echo "Options:"
+  echo "  up      Start the containers"
+  echo "  down    Stop the containers"
+  echo "  help    Show this help message"
+  echo ""
+}
+
+main() {
+  welcome
+
+  if [ $1 == "up" ]; then
+    setup_containers
+  elif [ $1 == "down" ]; then
+    shutdown_containers
+  elif [ $1 == "help" ]; then
+    usage
+  else
+    usage
+  fi
+}
+
+main $@
