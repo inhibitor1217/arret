@@ -7,4 +7,9 @@ edition = "2021"
 redis = "0.22"
 
 [dev-dependencies]
+criterion = "0.4.0"
 test-utils = { path = "./test-utils" }
+
+[[bench]]
+name = "bench_local_redis"
+harness = false

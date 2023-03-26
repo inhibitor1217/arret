@@ -31,6 +31,17 @@ test() {
   cargo test
 }
 
+benchmark() {
+  echo "Running benchmarks..."
+  echo ""
+
+  # Clear redis
+  redis-cli flushall > /dev/null
+
+  # Run benchmarks
+  cargo bench
+}
+
 usage() {
   echo "Usage: $0 [OPTIONS]"
   echo ""
@@ -38,6 +49,7 @@ usage() {
   echo "  up      Start the containers"
   echo "  down    Stop the containers"
   echo "  test    Run the tests"
+  echo "  bench   Run the benchmarks"
   echo "  help    Show this help message"
   echo ""
 }
@@ -51,6 +63,8 @@ main() {
     shutdown_containers
   elif [ $1 == "test" ]; then
     test
+  elif [ $1 == "bench" ]; then
+    benchmark
   elif [ $1 == "help" ]; then
     usage
   else

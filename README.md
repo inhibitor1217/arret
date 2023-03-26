@@ -19,4 +19,7 @@ Implementation of rate limiting algorithms and services via Redis.
 ```bash
 # Run unit and integration tests
 ./bootstrap test
+
+# Run performance tests
+./bootstrap bench
 ```
