@@ -1,5 +1,3 @@
-use std::time::Duration;
-
 use crate::{
     error::{Error, Result},
     interval::Interval,
@@ -59,11 +57,6 @@ impl TokenBucket {
         self.refill_interval
     }
 
-    /// Returns the refill interval of the token bucket rule as [`Duration`].
-    pub fn refill_duration(&self) -> Duration {
-        self.refill_interval.into()
-    }
-
     /// Returns the refill amount of the token bucket rule.
     pub fn refill_amount(&self) -> u64 {
         self.refill_amount
@@ -104,11 +97,6 @@ impl FixedWindow {
     /// Returns the window of the fixed window rule.
     pub fn window(&self) -> Interval {
         self.window
-    }
-
-    /// Returns the window of the fixed window rule as [`Duration`].
-    pub fn window_duration(&self) -> Duration {
-        self.window.into()
     }
 }
 
