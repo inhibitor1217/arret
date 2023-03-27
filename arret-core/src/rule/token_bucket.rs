@@ -4,6 +4,9 @@ use crate::{
     rate_limiter::{AcquireResult, Quota, RateLimiter},
 };
 
+#[cfg(feature = "aio")]
+use crate::aio;
+
 use super::clock;
 
 /// [Token bucket](https://en.wikipedia.org/wiki/Token_bucket) algorithm is a common
@@ -85,6 +88,19 @@ impl RateLimiter for TokenBucket {
                 result.reset,
             )))
         }
+    }
+}
+
+#[cfg(feature = "aio")]
+#[async_trait::async_trait]
+impl aio::RateLimiter for TokenBucket {
+    async fn acquire(
+        &self,
+        _resource: &str,
+        _tokens: u64,
+        _con: &mut dyn redis::aio::ConnectionLike,
+    ) -> Result<AcquireResult> {
+        todo!()
     }
 }
 

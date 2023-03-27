@@ -4,11 +4,15 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+async-trait = { version = "0.1", optional = true }
 redis = "0.22"
 
 [dev-dependencies]
 criterion = "0.4.0"
 test-utils = { path = "./test-utils" }
+
+[features]
+aio = ["async-trait", "redis/aio", "redis/tokio-comp"]
 
 [[bench]]
 name = "bench_local_redis"

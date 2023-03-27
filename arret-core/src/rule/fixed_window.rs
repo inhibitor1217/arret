@@ -4,6 +4,9 @@ use crate::{
     rate_limiter::{AcquireResult, Quota, RateLimiter},
 };
 
+#[cfg(feature = "aio")]
+use crate::aio;
+
 use super::clock;
 
 /// [Fixed window](https://developer.redis.com/develop/java/spring/rate-limiting/fixed-window/)
@@ -68,6 +71,19 @@ impl RateLimiter for FixedWindow {
                 reset,
             )))
         }
+    }
+}
+
+#[cfg(feature = "aio")]
+#[async_trait::async_trait]
+impl aio::RateLimiter for FixedWindow {
+    async fn acquire(
+        &self,
+        _resource: &str,
+        _tokens: u64,
+        _con: &mut dyn redis::aio::ConnectionLike,
+    ) -> Result<AcquireResult> {
+        todo!()
     }
 }
 
