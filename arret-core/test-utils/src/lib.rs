@@ -1,3 +1,6 @@
+#[cfg(feature = "aio")]
+pub mod aio;
+
 pub fn prepare_redis_connection() -> redis::Connection {
     let client = redis::Client::open("redis://127.0.0.1:6379").expect("Failed to connect to Redis");
     client

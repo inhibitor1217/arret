@@ -28,7 +28,7 @@ test() {
   redis-cli flushall > /dev/null
 
   # Run tests
-  cargo test
+  cargo test --features aio
 }
 
 benchmark() {
@@ -39,7 +39,7 @@ benchmark() {
   redis-cli flushall > /dev/null
 
   # Run benchmarks
-  cargo bench
+  cargo bench --features aio
 }
 
 usage() {

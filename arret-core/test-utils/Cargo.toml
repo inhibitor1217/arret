@@ -5,3 +5,7 @@ edition = "2021"
 
 [dependencies]
 redis = "0.22"
+tokio = { version = "1", features = ["full"], optional = true }
+
+[features]
+aio = ["redis/aio", "redis/tokio-comp", "tokio"]
