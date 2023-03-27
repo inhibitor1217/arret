@@ -4,6 +4,8 @@ use crate::{
     rate_limiter::{AcquireResult, Quota, RateLimiter},
 };
 
+use super::clock;
+
 /// [Fixed window](https://developer.redis.com/develop/java/spring/rate-limiting/fixed-window/)
 /// is a simple algorithm for rate limiting. It allows a limited amount of traffic in a fixed
 /// time window. Once the window is full, no more traffic is allowed until the window is reset.
@@ -41,10 +43,7 @@ impl RateLimiter for FixedWindow {
     ) -> Result<crate::rate_limiter::AcquireResult> {
         let script = redis::Script::new(Self::REDIS_SCRIPT);
 
-        let (seconds, _): (u64, u64) = redis::cmd("TIME")
-            .query(con)
-            .map_err(|err| Error::Internal(err.to_string()))?;
-        let window_id = seconds / self.window.as_secs();
+        let window_id = clock::now() / self.window.as_secs();
         let slot = format!("fixed_window:{resource}:{window_id}");
         let reset = (window_id + 1) * self.window.as_secs();
 

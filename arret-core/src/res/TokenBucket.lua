@@ -40,9 +40,9 @@ end
 
 return tokenBucket(
   KEYS[1],
-  redis.call("TIME")[1],
   tonumber(ARGV[1]),
   tonumber(ARGV[2]),
   tonumber(ARGV[3]),
-  tonumber(ARGV[4])
+  tonumber(ARGV[4]),
+  tonumber(ARGV[5])
 )

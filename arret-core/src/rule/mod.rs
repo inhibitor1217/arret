@@ -1,3 +1,4 @@
+mod clock;
 pub mod fixed_window;
 pub mod token_bucket;
 

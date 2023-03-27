@@ -4,6 +4,8 @@ use crate::{
     rate_limiter::{AcquireResult, Quota, RateLimiter},
 };
 
+use super::clock;
+
 /// [Token bucket](https://en.wikipedia.org/wiki/Token_bucket) algorithm is a common
 /// algorithm for rate limiting. While it allows traffic to be passed at a constant rate,
 /// it also allows bursts of traffic to be passed over a short period of time.
@@ -62,6 +64,7 @@ impl RateLimiter for TokenBucket {
         let key = format!("token_bucket:{resource}");
         let result = script
             .key(&key)
+            .arg(clock::now())
             .arg(self.capacity)
             .arg(self.refill_interval.as_secs())
             .arg(self.refill_amount)
