@@ -77,13 +77,38 @@ impl RateLimiter for FixedWindow {
 #[cfg(feature = "aio")]
 #[async_trait::async_trait]
 impl aio::RateLimiter for FixedWindow {
-    async fn acquire(
-        &self,
-        _resource: &str,
-        _tokens: u64,
-        _con: &mut dyn redis::aio::ConnectionLike,
-    ) -> Result<AcquireResult> {
-        todo!()
+    async fn acquire<C>(&self, resource: &str, tokens: u64, con: &mut C) -> Result<AcquireResult>
+    where
+        C: redis::aio::ConnectionLike + Send + Sync,
+    {
+        let script = redis::Script::new(Self::REDIS_SCRIPT);
+
+        let window_id = clock::now() / self.window.as_secs();
+        let slot = format!("fixed_window:{resource}:{window_id}");
+        let reset = (window_id + 1) * self.window.as_secs();
+
+        let result: FixedWindowScriptResult = script
+            .key(&slot)
+            .arg(self.capacity)
+            .arg(self.window.as_secs())
+            .arg(tokens)
+            .invoke_async::<C, FixedWindowScriptResult>(con)
+            .await
+            .map_err(|err| Error::Internal(err.to_string()))?;
+
+        if result.accepted {
+            Ok(AcquireResult::Ok(Quota::new(
+                self.capacity,
+                result.bucket,
+                reset,
+            )))
+        } else {
+            Ok(AcquireResult::Throttled(Quota::new(
+                self.capacity,
+                result.bucket,
+                reset,
+            )))
+        }
     }
 }
 

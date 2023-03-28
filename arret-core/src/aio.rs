@@ -11,10 +11,7 @@ pub trait RateLimiter {
     /// Otherwise, [`AcquireResult::Throttled`] is returned.
     ///
     /// Requires a Redis connection to be passed in.
-    async fn acquire(
-        &self,
-        resource: &str,
-        tokens: u64,
-        con: &mut dyn redis::aio::ConnectionLike,
-    ) -> Result<AcquireResult>;
+    async fn acquire<C>(&self, resource: &str, tokens: u64, con: &mut C) -> Result<AcquireResult>
+    where
+        C: redis::aio::ConnectionLike + Send + Sync;
 }

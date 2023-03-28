@@ -94,13 +94,36 @@ impl RateLimiter for TokenBucket {
 #[cfg(feature = "aio")]
 #[async_trait::async_trait]
 impl aio::RateLimiter for TokenBucket {
-    async fn acquire(
-        &self,
-        _resource: &str,
-        _tokens: u64,
-        _con: &mut dyn redis::aio::ConnectionLike,
-    ) -> Result<AcquireResult> {
-        todo!()
+    async fn acquire<C>(&self, resource: &str, tokens: u64, con: &mut C) -> Result<AcquireResult>
+    where
+        C: redis::aio::ConnectionLike + Send + Sync,
+    {
+        let script = redis::Script::new(Self::REDIS_SCRIPT);
+        let key = format!("token_bucket:{resource}");
+        let result = script
+            .key(&key)
+            .arg(clock::now())
+            .arg(self.capacity)
+            .arg(self.refill_interval.as_secs())
+            .arg(self.refill_amount)
+            .arg(tokens)
+            .invoke_async::<C, TokenBucketScriptResult>(con)
+            .await
+            .map_err(|err| Error::Internal(err.to_string()))?;
+
+        if result.accepted {
+            Ok(AcquireResult::Ok(Quota::new(
+                self.capacity,
+                result.tokens,
+                result.reset,
+            )))
+        } else {
+            Ok(AcquireResult::Throttled(Quota::new(
+                self.capacity,
+                result.tokens,
+                result.reset,
+            )))
+        }
     }
 }
 
